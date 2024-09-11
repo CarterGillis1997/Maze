@@ -12,6 +12,7 @@ class Maze{
 
         this.grid = [];
         this.stack = [];
+        this.start;
     }
 
     setup(){
@@ -23,7 +24,35 @@ class Maze{
             }
             this.grid.push(thisRow);
         }
-        current = this.grid[0][0];
+        // Randomized start location
+        this.start = [Math.floor(Math.random()*this.grid.length), Math.floor(Math.random()*this.grid.length)]
+
+        // Randomized end location a certain distance from the start
+        const minDist = (this.grid.length * 20) / 100; // 20 percent of the grid size
+        console.log(minDist)
+        for(let i = 0; i < 2; i++){
+            const end = [Math.floor(Math.random()*this.grid.length), Math.floor(Math.random()*this.grid.length)]
+            if((end[0] > this.start[0] - minDist && end[1] > this.start[1] - minDist) && (end[0] < this.start[0] + minDist && end[1] < this.start[1] + minDist)){
+                console.log("INSIDE")
+                i--
+            }else{
+                this.end = end;
+                break;
+            }
+        }
+
+        for(let i = 0; i < 2; i++){
+            const key = [Math.floor(Math.random()*this.grid.length), Math.floor(Math.random()*this.grid.length)]
+            if(((key[0] > this.start[0] - minDist && key[1] > this.start[1] - minDist) && (key[0] < this.start[0] + minDist && key[1] < this.start[1] + minDist) && (key[0] > this.end[0] - minDist && key[1] > this.end[1] - minDist) && (key[0] < this.end[0] + minDist && key[1] < this.end[1] + minDist))){
+                console.log("INSIDE")
+                i--
+            }else{
+                this.key = key;
+                break;
+            }
+        }
+
+        current = this.grid[this.start[1]][this.start[0]];
     }
 
     draw(){
@@ -59,29 +88,38 @@ class Maze{
 
         if(this.stack.length == 0){
             // End of generation;
+
             this.cellSize = (this.size / this.grid.length);
+            
+            // Draw end cell;
+            ctx.fillStyle = "red";
+            ctx.fillRect(this.end[0] * this.cellSize + 2, this.end[1] * this.cellSize + 2, this.cellSize - 2, this.cellSize - 2);
+
+            // Draw key cell
+            ctx.fillStyle = "green";
+            ctx.fillRect(this.key[0] * this.cellSize + 2, this.key[1] * this.cellSize + 2, this.cellSize - 2, this.cellSize - 2);
 
             this.control = document.querySelector(".control");
             this.control.setAttribute("width", this.size);
             this.control.setAttribute("height", this.size);
 
+            this.position = [this.start[0], this.start[1]];
+
             const player = document.createElementNS(svgNS, "circle");
             player.setAttribute("r", (this.cellSize / 2) - 2);
-            player.setAttribute("cx", this.cellSize / 2);
-            player.setAttribute("cy", this.cellSize / 2);
+            player.setAttribute("cx", (this.position[0] * this.cellSize) + (this.cellSize / 2));
+            player.setAttribute("cy", (this.position[1] * this.cellSize) + (this.cellSize / 2));
             player.setAttribute("fill", "red");
 
-            this.player = player
+            this.player = player;
 
-            this.position = [0, 0];
-
-            this.playerCell = this.grid[0][0]
+            this.playerCell = this.grid[this.start[1]][this.start[0]];
             
             this.control.appendChild(player);
 
             document.body.addEventListener("keydown",(event)=>{
                 if(["w","s","a","d"].includes(event.key)){
-                    this.move(this.position[0], this.position[1], event.key)
+                    this.move(this.position[0], this.position[1], event.key);
                 }
             })
             return;
@@ -260,6 +298,6 @@ class Cell{
 
 }
 
-let newMaze = new Maze(1000, 20, 20);
+let newMaze = new Maze(1000, 15, 15);
 newMaze.setup();
 newMaze.draw();
